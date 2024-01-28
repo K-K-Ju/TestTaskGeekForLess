@@ -4,26 +4,6 @@ using TestTaskGeekForLess.Models;
 
 namespace TestTaskGeekForLess.Utility
 {
-    //public static class JsonExtensions
-    //{
-    //    public static object GetValue(this JsonElement jsonElement)
-    //    {
-    //        switch (jsonElement.ValueKind)
-    //        {
-    //            case JsonValueKind.String:
-    //                return jsonElement.GetString();
-    //            case JsonValueKind.Number:
-    //                return jsonElement.GetDouble();
-    //            case JsonValueKind.True:
-    //                return true;
-    //            case JsonValueKind.False:
-    //                return false;
-    //            default:
-    //                return null;
-    //        }
-    //    }
-    //}
-
     public class JsonTreeConverter
     {
         public static int counter = 2;

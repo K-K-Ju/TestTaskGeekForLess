@@ -14,15 +14,6 @@ namespace TestTaskGeekForLess.Utility
 
         public TreeNode RetrieveTree()
         {
-            //System.FormattableString query = $"SELECCT * FROM TreeNodes n WHERE n.id=1";
-            //using (SqlConnection conn = new SqlConnection("Server=ANDREW\\SQLEXPRESS;Database=config_tree;TrustServerCertificate=True"))
-            //{
-            //    string query = "";
-            //    using(SqlCommand cmd = new SqlCommand(query, conn)) 
-            //    }
-            //    }
-            //}
-
             var root = Context.TreeNode
                 .Where(n => n.Id == 1)
                 .ToList()[0];
@@ -35,8 +26,6 @@ namespace TestTaskGeekForLess.Utility
         {
             Context.TreeNode
                 .Add(treeNode);
-
-            //Context.SaveChanges();
         }
 
         public void SaveTree(TreeNode rootNode)

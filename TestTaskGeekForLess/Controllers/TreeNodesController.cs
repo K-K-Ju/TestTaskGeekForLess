@@ -74,10 +74,5 @@ namespace TestTaskGeekForLess.Controllers
             
             return View();
         }
-
-        //private bool TreeNodeExists(int id)
-        //{
-        //    return _context.TreeNode.Any(e => e.Id == id);
-        //}
     }
 }
