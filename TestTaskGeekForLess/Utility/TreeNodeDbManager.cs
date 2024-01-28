@@ -13,11 +13,13 @@ namespace TestTaskGeekForLess.Utility
             Context = context;
         }
 
-        public TreeNode RetrieveTree()
+        public TreeNode? RetrieveTree()
         {
             var root = Context.TreeNode
-                .Where(n => n.Id == 1)
-                .ToList()[0];
+                .FirstOrDefault(n => n.Id == 1);
+
+            if (root == null)
+                return null;
 
             root.Children = GetChildren(root.Id);
             return root;
@@ -31,7 +33,7 @@ namespace TestTaskGeekForLess.Utility
                     .Add(treeNode);
                 transaction.Commit();
             }
-            
+
         }
 
         public void SaveTree(TreeNode rootNode)
@@ -50,7 +52,7 @@ namespace TestTaskGeekForLess.Utility
                 .Where(n => n.ParentId == parentId)
                 .ToList();
 
-            foreach (var child in children) 
+            foreach (var child in children)
             {
                 child.Children = GetChildren(child.Id);
             }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using TestTaskGeekForLess.Data;
@@ -19,24 +20,29 @@ namespace TestTaskGeekForLess.Controllers
             _treeDbManager = new TreeNodeDbManager(context);
         }
 
-        
-        public async Task<IActionResult> Index()
+        [HttpGet("")]
+        public IActionResult Index()
         {
             TreeNode? rootFromDb = _treeDbManager.RetrieveTree();
+
+            if (rootFromDb == null)
+            {
+                return RedirectToAction("Create");
+            }
 
             return View(rootFromDb);
         }
 
         [Route("branch")]
         [HttpGet("branch/{*path}")]
-        public async Task<IActionResult> Branch([FromRoute] string? path = null)
+        public IActionResult Branch([FromRoute] string? path = null)
         {
             if (path == null)
             {
                 return NotFound();
             }
 
-            string [] paths = path.Split("/");
+            string[] paths = path.Split("/");
 
             TreeNode? parent = new TreeNode()
             {
@@ -51,7 +57,8 @@ namespace TestTaskGeekForLess.Controllers
                                     .Where(n => n.Name == paths[i] && n.ParentId == parent.Id)
                                     .ToList()
                                     .Single();
-                } catch (InvalidOperationException e)
+                }
+                catch (InvalidOperationException e)
                 {
                     Debug.WriteLine(e.StackTrace);
                     return NotFound();
@@ -68,27 +75,28 @@ namespace TestTaskGeekForLess.Controllers
             return View("Index", treeNode);
         }
 
+        [HttpGet("create")]
         public IActionResult Create()
         {
             return View();
         }
 
-        [HttpPost]
+        [HttpPost("create")]
         [ValidateAntiForgeryToken]
-        [Route("create")]
         public async Task<IActionResult> Create(UploadFileWrapper formFile)
         {
             TreeNode root;
             if (formFile.File != null && formFile.File.Length > 0)
             {
-                using (var streamReader = new StreamReader(formFile.File.OpenReadStream()))
+                _treeDbManager.DeleteDbData();
+                if (formFile.File.ContentType == "application/json")
                 {
-                    var jsonContent = await streamReader.ReadToEndAsync();
-                    JsonTreeConverter converter = new JsonTreeConverter();
-                    root = converter.ConvertJsonToTree(jsonContent);
-                    ViewBag.Message = "JSON file uploaded successfully!";
-
-                    _treeDbManager.DeleteDbData();
+                    root = await _GetRootTreeNodeFromJsonAsync(formFile.File);
+                    _treeDbManager.SaveTree(root);
+                    await _context.SaveChangesAsync();
+                } else if (formFile.File.ContentType == "text/plain")
+                {
+                    root = await _GetRootTreeNodeFromTxtAsync(formFile.File);
                     _treeDbManager.SaveTree(root);
                     await _context.SaveChangesAsync();
                 }
@@ -100,6 +108,34 @@ namespace TestTaskGeekForLess.Controllers
             }
 
             return View();
+        }
+
+        private async Task<TreeNode> _GetRootTreeNodeFromJsonAsync(IFormFile file) 
+        {
+            using (var streamReader = new StreamReader(file.OpenReadStream()))
+            {
+                var jsonContent = await streamReader.ReadToEndAsync();
+                JsonTreeConverter converter = new JsonTreeConverter();
+                TreeNode root = converter.ConvertJsonToTree(jsonContent);
+                ViewBag.Message = "JSON file uploaded successfully!";
+
+                return root;
+            }
+        }
+
+        private async Task<TreeNode> _GetRootTreeNodeFromTxtAsync(IFormFile file)
+        {
+            using (var streamReader = new StreamReader(file.OpenReadStream()))
+            {
+                var txtContent = await streamReader.ReadToEndAsync();
+                string[] lines = txtContent.Trim().Split('\n');
+                
+                var converter = new TxtTreeConverter();
+                TreeNode root = converter.ConvertStrToTreeNode(lines);
+                ViewBag.Message = "TXT file uploaded successfully!";
+
+                return root;
+            }
         }
     }
 }
