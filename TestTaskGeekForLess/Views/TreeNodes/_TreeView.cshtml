@@ -1,0 +1,16 @@
+﻿@model List<TreeNode>
+
+<div>
+    <ul>
+        @foreach (var child in Model)
+        {
+            <li>
+                @child.Name: @child.Value
+                @if (child.Children != null && child.Children.Any())
+                {
+                    <partial name="_TreeView" model="child.Children" />
+                }
+            </li>
+        }
+    </ul>
+</div>

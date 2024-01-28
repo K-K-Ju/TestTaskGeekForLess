@@ -1,0 +1,19 @@
+﻿@{
+    ViewData["Title"] = "Configuration tree";
+}
+
+@model TreeNode
+
+<div>
+    <h2>Configuration Tree</h2>
+
+    <ul>
+        <li>
+            @Model.Name: @Model.Value
+            @if (Model.Children != null && Model.Children.Any())
+            {
+                <partial name="_TreeView" model="Model.Children" />
+            }
+        </li>
+    </ul>
+</div>

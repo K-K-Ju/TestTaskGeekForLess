@@ -1,12 +1,8 @@
-﻿@{
-    ViewData["Title"] = "TreeConverter";
-}
-
-@model FileUploadModel
+﻿@model UploadFileWrapper
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
-    <form method="post" asp-action="UploadFile" enctype="multipart/form-data" asp-controller="TreeConverter">
+    <form method="post" asp-action="Create" enctype="multipart/form-data" asp-controller="TreeNodes">
         <div>
             <label asp-for="File">Json file</label>
             <input type="file" asp-for="File" />
