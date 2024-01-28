@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using TestTaskGeekForLess.Data;
 using TestTaskGeekForLess.Models;
 using TestTaskGeekForLess.Utility;
 
 namespace TestTaskGeekForLess.Controllers
 {
+    [Route("tree")]
     public class TreeNodesController : Controller
     {
         private readonly TestTaskGeekForLessContext _context;
@@ -17,30 +19,53 @@ namespace TestTaskGeekForLess.Controllers
             _treeDbManager = new TreeNodeDbManager(context);
         }
 
-        // GET: TreeNodes
+        
         public async Task<IActionResult> Index()
         {
             TreeNode? rootFromDb = _treeDbManager.RetrieveTree();
-            
+
             return View(rootFromDb);
         }
 
-        // GET: TreeNodes/Details/5
-        public async Task<IActionResult> Details(int? id)
+        [Route("branch")]
+        [HttpGet("branch/{*path}")]
+        public async Task<IActionResult> Branch([FromRoute] string? path = null)
         {
-            if (id == null)
+            if (path == null)
             {
                 return NotFound();
             }
 
-            var treeNode = await _context.TreeNode
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (treeNode == null)
+            string [] paths = path.Split("/");
+
+            TreeNode? parent = new TreeNode()
             {
-                return NotFound();
+                Id = 1,
+            };
+            TreeNode? treeNode = new TreeNode();
+            for (int i = 0; i < paths.Length; i++)
+            {
+                try
+                {
+                    treeNode = _context.TreeNode
+                                    .Where(n => n.Name == paths[i] && n.ParentId == parent.Id)
+                                    .ToList()
+                                    .Single();
+                } catch (InvalidOperationException e)
+                {
+                    Debug.WriteLine(e.StackTrace);
+                    return NotFound();
+                }
+                if (treeNode == null)
+                {
+                    return NotFound();
+                }
+                parent = treeNode;
             }
 
-            return View(treeNode);
+            treeNode.Children = _treeDbManager.GetChildren(treeNode.Id);
+
+            return View("Index", treeNode);
         }
 
         public IActionResult Create()
@@ -50,6 +75,7 @@ namespace TestTaskGeekForLess.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Route("create")]
         public async Task<IActionResult> Create(UploadFileWrapper formFile)
         {
             TreeNode root;
@@ -62,6 +88,7 @@ namespace TestTaskGeekForLess.Controllers
                     root = converter.ConvertJsonToTree(jsonContent);
                     ViewBag.Message = "JSON file uploaded successfully!";
 
+                    _treeDbManager.DeleteDbData();
                     _treeDbManager.SaveTree(root);
                     await _context.SaveChangesAsync();
                 }
@@ -69,9 +96,9 @@ namespace TestTaskGeekForLess.Controllers
             else
             {
                 ViewBag.Message = "Please select a JSON file to upload.";
-                
+
             }
-            
+
             return View();
         }
     }

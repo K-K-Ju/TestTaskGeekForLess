@@ -24,6 +24,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=TreeNodes}/{action=Create}");
+    pattern: "{controller=TreeNodes}/{action=Index}");
 
 app.Run();

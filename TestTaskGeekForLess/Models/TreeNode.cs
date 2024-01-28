@@ -10,6 +10,5 @@ namespace TestTaskGeekForLess.Models
         public int? ParentId { get; set; }
         [NotMapped]
         public List<TreeNode> Children { get; set; }
-        }
     }
 }

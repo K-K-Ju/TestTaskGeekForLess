@@ -1,4 +1,5 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using TestTaskGeekForLess.Data;
 using TestTaskGeekForLess.Models;
 
@@ -18,14 +19,19 @@ namespace TestTaskGeekForLess.Utility
                 .Where(n => n.Id == 1)
                 .ToList()[0];
 
-            root.Children = _GetChildren(root.Id);
+            root.Children = GetChildren(root.Id);
             return root;
         }
 
         public void AddNode(TreeNode treeNode)
         {
-            Context.TreeNode
-                .Add(treeNode);
+            using (var transaction = Context.Database.BeginTransaction())
+            {
+                Context.TreeNode
+                    .Add(treeNode);
+                transaction.Commit();
+            }
+            
         }
 
         public void SaveTree(TreeNode rootNode)
@@ -38,7 +44,7 @@ namespace TestTaskGeekForLess.Utility
             }
         }
 
-        private List<TreeNode> _GetChildren(int parentId)
+        public List<TreeNode> GetChildren(int parentId)
         {
             var children = Context.TreeNode
                 .Where(n => n.ParentId == parentId)
@@ -46,10 +52,19 @@ namespace TestTaskGeekForLess.Utility
 
             foreach (var child in children) 
             {
-                child.Children = _GetChildren(child.Id);
+                child.Children = GetChildren(child.Id);
             }
 
             return children;
+        }
+
+        public void DeleteDbData()
+        {
+            using (var transaction = Context.Database.BeginTransaction())
+            {
+                Context.TreeNode.ExecuteDelete();
+                transaction.Commit();
+            }
         }
     }
 }

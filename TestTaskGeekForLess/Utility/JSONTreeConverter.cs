@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json.Linq;
-using System.Text.Json;
 using TestTaskGeekForLess.Models;
 
 namespace TestTaskGeekForLess.Utility
@@ -17,7 +16,8 @@ namespace TestTaskGeekForLess.Utility
                 children.Add(TraverseJsonProperty(prop, 1));
             }
 
-            TreeNode rootNode = new TreeNode() { 
+            TreeNode rootNode = new TreeNode()
+            {
                 Id = 1,
                 Name = null,
                 Value = null,
