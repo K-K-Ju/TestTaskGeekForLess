@@ -2,10 +2,12 @@
 
 namespace TestTaskGeekForLess.Utility
 {
-    public class TxtTreeConverter
+    public class TxtTreeConverter : TreeNodeConverter
     {
-        public TreeNode ConvertStrToTreeNode(string[] lines)
+        public TreeNode convert(string input)
         {
+            string[] lines = input.Split('\n');
+
             var root = new TreeNode(){
                 Id = 1,
                 Children = new List<TreeNode>()

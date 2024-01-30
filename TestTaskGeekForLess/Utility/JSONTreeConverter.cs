@@ -3,10 +3,10 @@ using TestTaskGeekForLess.Models;
 
 namespace TestTaskGeekForLess.Utility
 {
-    public class JsonTreeConverter
+    public class JsonTreeConverter : TreeNodeConverter
     {
         public static int counter = 2;
-        public TreeNode ConvertJsonToTree(string jsonString)
+        public TreeNode convert(string jsonString)
         {
             var parentObj = JObject.Parse(jsonString);
             var children = new List<TreeNode>();

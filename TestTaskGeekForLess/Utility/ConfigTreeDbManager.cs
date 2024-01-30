@@ -5,10 +5,10 @@ using TestTaskGeekForLess.Models;
 
 namespace TestTaskGeekForLess.Utility
 {
-    public class TreeNodeDbManager
+    public class ConfigTreeDbManager : TreeDbManager
     {
         public TestTaskGeekForLessContext Context { get; set; }
-        public TreeNodeDbManager(TestTaskGeekForLessContext context)
+        public ConfigTreeDbManager(TestTaskGeekForLessContext context)
         {
             Context = context;
         }
@@ -21,7 +21,7 @@ namespace TestTaskGeekForLess.Utility
             if (root == null)
                 return null;
 
-            root.Children = GetChildren(root.Id);
+            root.Children = GetChildren(root);
             return root;
         }
 
@@ -46,21 +46,21 @@ namespace TestTaskGeekForLess.Utility
             }
         }
 
-        public List<TreeNode> GetChildren(int parentId)
+        public List<TreeNode> GetChildren(TreeNode parent)
         {
             var children = Context.TreeNode
-                .Where(n => n.ParentId == parentId)
+                .Where(n => n.ParentId == parent.Id)
                 .ToList();
 
             foreach (var child in children)
             {
-                child.Children = GetChildren(child.Id);
+                child.Children = GetChildren(child);
             }
 
             return children;
         }
 
-        public void DeleteDbData()
+        public void DeleteTree()
         {
             using (var transaction = Context.Database.BeginTransaction())
             {

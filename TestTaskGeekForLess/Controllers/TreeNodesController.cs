@@ -12,12 +12,12 @@ namespace TestTaskGeekForLess.Controllers
     public class TreeNodesController : Controller
     {
         private readonly TestTaskGeekForLessContext _context;
-        private TreeNodeDbManager _treeDbManager;
+        private ConfigTreeDbManager _treeDbManager;
 
         public TreeNodesController(TestTaskGeekForLessContext context)
         {
             _context = context;
-            _treeDbManager = new TreeNodeDbManager(context);
+            _treeDbManager = new ConfigTreeDbManager(context);
         }
 
         [HttpGet("")]
@@ -70,7 +70,7 @@ namespace TestTaskGeekForLess.Controllers
                 parent = treeNode;
             }
 
-            treeNode.Children = _treeDbManager.GetChildren(treeNode.Id);
+            treeNode.Children = _treeDbManager.GetChildren(treeNode);
 
             return View("Index", treeNode);
         }
@@ -88,7 +88,7 @@ namespace TestTaskGeekForLess.Controllers
             TreeNode root;
             if (formFile.File != null && formFile.File.Length > 0)
             {
-                _treeDbManager.DeleteDbData();
+                _treeDbManager.DeleteTree();
                 if (formFile.File.ContentType == "application/json")
                 {
                     root = await _GetRootTreeNodeFromJsonAsync(formFile.File);
@@ -116,7 +116,7 @@ namespace TestTaskGeekForLess.Controllers
             {
                 var jsonContent = await streamReader.ReadToEndAsync();
                 JsonTreeConverter converter = new JsonTreeConverter();
-                TreeNode root = converter.ConvertJsonToTree(jsonContent);
+                TreeNode root = converter.convert(jsonContent);
                 ViewBag.Message = "JSON file uploaded successfully!";
 
                 return root;
@@ -128,10 +128,9 @@ namespace TestTaskGeekForLess.Controllers
             using (var streamReader = new StreamReader(file.OpenReadStream()))
             {
                 var txtContent = await streamReader.ReadToEndAsync();
-                string[] lines = txtContent.Trim().Split('\n');
                 
                 var converter = new TxtTreeConverter();
-                TreeNode root = converter.ConvertStrToTreeNode(lines);
+                TreeNode root = converter.convert(txtContent);
                 ViewBag.Message = "TXT file uploaded successfully!";
 
                 return root;
