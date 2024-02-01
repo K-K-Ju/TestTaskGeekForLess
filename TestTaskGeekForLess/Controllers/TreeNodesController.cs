@@ -115,36 +115,7 @@ namespace TestTaskGeekForLess.Controllers
             }
 
             return View();
-        }
-
-        //private async Task<TreeNode> _GetRootTreeNodeFromJsonAsync(IFormFile file) 
-        //{
-        //    using (var streamReader = new StreamReader(file.OpenReadStream()))
-        //    {
-        //        var jsonContent = await streamReader.ReadToEndAsync();
-        //        JsonTreeConverter converter = new JsonTreeConverter();
-        //        TreeNode root = converter.convert(jsonContent);
-        //        ViewBag.Message = "JSON file uploaded successfully!";
-
-        //        return root;
-        //    }
-        //}
-
-        //private async Task<TreeNode> _GetRootTreeNodeFromTxtAsync(IFormFile file)
-        //{
-        //    using (var streamReader = new StreamReader(file.OpenReadStream()))
-        //    {
-        //        var txtContent = await streamReader.ReadToEndAsync();
-                
-        //        var converter = new TxtTreeConverter();
-        //        TreeNode root = converter.convert(txtContent);
-        //        ViewBag.Message = "TXT file uploaded successfully!";
-
-        //        return root;
-        //    }
-        //}        
-        
-        
+        }        
         private async Task<TreeNode> _GetRootTreeNodeFromFile(IFormFile file, TreeNodeConverter converter)
         {
             using (var streamReader = new StreamReader(file.OpenReadStream()))
