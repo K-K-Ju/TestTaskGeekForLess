@@ -14,6 +14,8 @@ namespace TestTaskGeekForLess.Controllers
         private readonly TestTaskGeekForLessContext _context;
         private ConfigTreeDbManager _treeDbManager;
 
+        private static readonly int PARENT_ID = 1;
+
         public TreeNodesController(TestTaskGeekForLessContext context)
         {
             _context = context;
@@ -46,8 +48,9 @@ namespace TestTaskGeekForLess.Controllers
 
             TreeNode? parent = new TreeNode()
             {
-                Id = 1,
+                Id = PARENT_ID,
             };
+
             TreeNode? treeNode = new TreeNode();
             for (int i = 0; i < paths.Length; i++)
             {
@@ -82,24 +85,28 @@ namespace TestTaskGeekForLess.Controllers
         }
 
         [HttpPost("create")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(UploadFileWrapper formFile)
         {
             TreeNode root;
             if (formFile.File != null && formFile.File.Length > 0)
             {
                 _treeDbManager.DeleteTree();
+                TreeNodeConverter converter = null;
                 if (formFile.File.ContentType == "application/json")
                 {
-                    root = await _GetRootTreeNodeFromJsonAsync(formFile.File);
-                    _treeDbManager.SaveTree(root);
-                    await _context.SaveChangesAsync();
+                    converter = new JsonTreeConverter();
                 } else if (formFile.File.ContentType == "text/plain")
                 {
-                    root = await _GetRootTreeNodeFromTxtAsync(formFile.File);
-                    _treeDbManager.SaveTree(root);
-                    await _context.SaveChangesAsync();
+                    converter = new TxtTreeConverter();
+                } else
+                {
+                    ViewBag.Message = "This format file is not supported";
+                    return View("Message");
                 }
+
+                root = await _GetRootTreeNodeFromFile(formFile.File, converter);
+                _treeDbManager.SaveTree(root);
+                await _context.SaveChangesAsync();
             }
             else
             {
@@ -110,26 +117,40 @@ namespace TestTaskGeekForLess.Controllers
             return View();
         }
 
-        private async Task<TreeNode> _GetRootTreeNodeFromJsonAsync(IFormFile file) 
-        {
-            using (var streamReader = new StreamReader(file.OpenReadStream()))
-            {
-                var jsonContent = await streamReader.ReadToEndAsync();
-                JsonTreeConverter converter = new JsonTreeConverter();
-                TreeNode root = converter.convert(jsonContent);
-                ViewBag.Message = "JSON file uploaded successfully!";
+        //private async Task<TreeNode> _GetRootTreeNodeFromJsonAsync(IFormFile file) 
+        //{
+        //    using (var streamReader = new StreamReader(file.OpenReadStream()))
+        //    {
+        //        var jsonContent = await streamReader.ReadToEndAsync();
+        //        JsonTreeConverter converter = new JsonTreeConverter();
+        //        TreeNode root = converter.convert(jsonContent);
+        //        ViewBag.Message = "JSON file uploaded successfully!";
 
-                return root;
-            }
-        }
+        //        return root;
+        //    }
+        //}
 
-        private async Task<TreeNode> _GetRootTreeNodeFromTxtAsync(IFormFile file)
+        //private async Task<TreeNode> _GetRootTreeNodeFromTxtAsync(IFormFile file)
+        //{
+        //    using (var streamReader = new StreamReader(file.OpenReadStream()))
+        //    {
+        //        var txtContent = await streamReader.ReadToEndAsync();
+                
+        //        var converter = new TxtTreeConverter();
+        //        TreeNode root = converter.convert(txtContent);
+        //        ViewBag.Message = "TXT file uploaded successfully!";
+
+        //        return root;
+        //    }
+        //}        
+        
+        
+        private async Task<TreeNode> _GetRootTreeNodeFromFile(IFormFile file, TreeNodeConverter converter)
         {
             using (var streamReader = new StreamReader(file.OpenReadStream()))
             {
                 var txtContent = await streamReader.ReadToEndAsync();
                 
-                var converter = new TxtTreeConverter();
                 TreeNode root = converter.convert(txtContent);
                 ViewBag.Message = "TXT file uploaded successfully!";
 
